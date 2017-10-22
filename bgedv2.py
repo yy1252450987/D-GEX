@@ -12,12 +12,13 @@ SP_IDX_NODUP = 'bgedv2_idx_nodup_K100_D1.0.txt'
 
 def main():
     infile = open(SP_IDX_NODUP)
-    samples_idx_nodup = []
+    samples_idx_nodup = [] #筛选后的样本序号
     for line in infile:
         samples_idx_nodup.append(int(line.strip('\n')))
     
     infile.close()
     samples_idx_nodup = np.random.permutation(samples_idx_nodup).tolist()
+    #对筛选后的样本序号列表进行随机化
     
     
     lm_id = [] 
@@ -27,10 +28,10 @@ def main():
         ID, probs = line.strip('\n').split('\t')[1:]
         lm_id.append(ID)
         lm_probs_dict[ID] = probs.split(',')
- 
+    #生成{ENSG00000079739:[201968_s_at]}字典
     infile.close()
     lm_id = np.random.permutation(lm_id).tolist()
- 
+    # 随机化landmark基因的ID号
     tg_id = [] 
     tg_probs_dict = {}
     infile = open(TG_ID)
@@ -38,23 +39,27 @@ def main():
         ID, probs = line.strip('\n').split('\t')[1:]
         tg_id.append(ID)
         tg_probs_dict[ID] = probs.split(',')
- 
+    #生成{ENSG00000079739:[201968_s_at]}字典
     infile.close()
     tg_id = np.random.permutation(tg_id).tolist()
-        
+    # 随机化target基因的ID号
     bgedv2_gctobj = gct.GCT(BGEDV2_GCTX)
     bgedv2_gctobj.read()
     bgedv2_genes = bgedv2_gctobj.get_rids()
-    bgedv2_samples = bgedv2_gctobj.get_cids()
+    bgedv2_samples = bgedv2_gctobj.get_cids()# 获取未筛选的样本名称
     samples_idx = samples_idx_nodup
-    samples_id = np.array(bgedv2_samples)[samples_idx]
-
+    samples_id = np.array(bgedv2_samples)[samples_idx] #获取筛选后的样本名称
+  
     outfile = open('bgedv2_GTEx_1000G_sp.txt', 'w')
     for i in range(0, len(samples_id)):
         outfile.write(str(samples_idx[i]) + '\t' + samples_id[i] + '\n')
     
     outfile.close()
-
+    #bgedv2_GTEx_1000G_sp.txt： 
+    #156	CPC006_U937_6H:BRD-K56343971-001-02-3:10
+    #228	BRAF001_HEK293T_24H:BRD-U73308409-000-01-9:0.15625
+    #43	CPC006_SKM1_6H:BRD-U88459701-000-01-8:10
+    #63	CPC020_MCF7_6H:BRD-A82307304-001-01-8:10
 
     data_lm = np.zeros((len(lm_id), len(samples_id)), dtype='float64')
     outfile = open('bgedv2_GTEx_1000G_lm.txt', 'w')
