@@ -28,7 +28,8 @@ def main():
         ID, probs = line.strip('\n').split('\t')[1:]
         lm_id.append(ID)
         lm_probs_dict[ID] = probs.split(',')
-    #生成{ENSG00000079739:[201968_s_at]}字典
+    # lm_id: [ENSG001, ENSG002...]
+    # lm_probs_dict： {ENSG00000079739:[201968_s_at，20000_s_at]}字典
     infile.close()
     lm_id = np.random.permutation(lm_id).tolist()
     # 随机化landmark基因的ID号
@@ -64,11 +65,18 @@ def main():
     data_lm = np.zeros((len(lm_id), len(samples_id)), dtype='float64')
     outfile = open('bgedv2_GTEx_1000G_lm.txt', 'w')
     for i in range(len(lm_id)):
+        # 找到landmark的ENSG ID对应的探针
         probs_id = lm_probs_dict[lm_id[i]]
+        # 找到landmark探针在整个数据上的位置
         probs_idx = map(bgedv2_genes.index, probs_id)
+        # 取一个基因ID对应多个探针对应的列，以及剔除重复性的样本行
         probs_data = bgedv2_gctobj.matrix[np.ix_(probs_idx, samples_idx)].astype('float64')
+        # 计算多个探针的平均值
         probs_mean = probs_data.mean(axis=0)
+        # 赋值给新的数据data_lm
         data_lm[i, :] = probs_mean
+        # 输出landmark的gene id，探针的位置，以及探针名
+        # ENSG00000183087	1631,2989	1598_g_at,202177_at
         outfile.write(lm_id[i] + '\t' + ','.join(map(str, probs_idx)) + '\t' + ','.join(map(str, probs_id)) + '\n')
     
     outfile.close()
